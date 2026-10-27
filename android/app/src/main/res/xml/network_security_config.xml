@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AUDIT M-11 — cleartext HTTP is refused for every shipped build.
+
+  `cleartextTrafficPermitted="false"` is the base configuration. The only
+  reason a release APK must never open a plain-HTTP socket is that it carries
+  user credentials, JWTs and UPI ids; an attacker on the same network could read
+  or rewrite all of them.
+
+  There is deliberately NO `<domain-config>` carve-out for 10.0.2.2 or
+  localhost: those are development addresses and belong in the debug manifest
+  (android/app/src/debug/AndroidManifest.xml), where
+  `usesCleartextTraffic="true"` is set for exactly that purpose.
+
+  System CAs only — no user-installed CA trust, so a proxy certificate
+  installed on the device cannot silently intercept ParkShare traffic.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

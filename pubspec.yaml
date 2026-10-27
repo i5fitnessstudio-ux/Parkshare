@@ -1,0 +1,74 @@
+name: parkshare_new
+description: "ParkShare - find and book parking spaces. Share your parking and earn."
+publish_to: 'none'
+
+version: 1.0.0+2
+
+environment:
+  sdk: ^3.13.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management
+  provider: ^6.1.2
+
+  # Networking
+  http: ^1.2.2
+  http_parser: ^4.0.2
+
+  # Secure local token storage
+  # Android Keystore / iOS Keychain
+  flutter_secure_storage: ^9.2.2
+
+  # Maps - OpenStreetMap + location
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  geolocator: ^14.0.2
+  geocoding: ^3.0.0
+
+  # Photos - owner uploads / camera / gallery
+  image_picker: ^1.1.2
+
+  # Call / external actions / UPI intents
+  url_launcher: ^6.3.1
+
+  # Online payments - official Razorpay Checkout plugin.
+  # The KEY SECRET never lives in the app; only the public key id returned by
+  # the backend create-order response is passed to Checkout.
+  razorpay_flutter: ^1.4.7
+
+  # Formatting
+  intl: ^0.20.2
+
+  # Device information
+  device_info_plus: ^12.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  integration_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/test/parking_photo.png
+    - assets/images/
+    - assets/images/parkshare/
+    - assets/images/parkshare/onboarding/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/parkshare_launcher_foreground.png"
+  adaptive_icon_foreground: "assets/images/parkshare_launcher_foreground.png"
+  adaptive_icon_background: "#FFFFFF"

@@ -1,0 +1,63 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.dart_tool.zip
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Secrets — audit M-09 / H-06. These must never be committed.
+.env
+.env.*
+!.env.example
+/android/key.properties
+*.jks
+*.keystore
+
+# Runtime artefacts of the local backend (audit L-01). Generated, not source:
+# they inflate the package and can contain internal error text from local runs.
+# (`*.log` above already covers the backend log files; `.dart_tool/` above
+# matches at any depth, so backend/.dart_tool is already covered.)
+/backend/uploads/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Widget Preview related
+.widget_preview/

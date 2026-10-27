@@ -1,0 +1,28 @@
+name: parkshare_backend
+description: ParkShare REST API backend (Dart Shelf + PostgreSQL)
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  bcrypt: ^1.1.3
+  crypto: ^3.0.6
+  dart_jsonwebtoken: ^2.14.0
+  dotenv: ^4.2.0
+  pointycastle: ^3.9.1
+  postgres: ^3.4.0
+  shelf: ^1.4.2
+  shelf_multipart: ^2.0.0
+  shelf_router: ^1.1.4
+
+dev_dependencies:
+  lints: ^6.0.0
+  # AUDIT FIX: the backend previously had no test dependency at all, so
+  # `dart test` failed outright and none of the security-critical behaviour
+  # (JWT expiry, role authorisation, OTP policy, payment state machine,
+  # upload validation) had a regression test. `test` provides the runner;
+  # `http` is used only to drive the real Router in-process.
+  test: ^1.33.0
+  http: ^1.2.0

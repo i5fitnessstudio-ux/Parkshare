@@ -1,0 +1,85 @@
+# =============================================================================
+# ParkShare — PRODUCTION OVERLAY for the EXISTING /opt/parkshare stack.
+#
+# This file does NOT replace the base compose file. It is layered on top of it:
+#
+#   cd /opt/parkshare
+#   # 1. review the fully-merged result (changes nothing):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml config
+#   # 2. apply, ONLY AFTER APPROVAL:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# It is EXPECTED to be edited once, using the output of deploy/inspect-vps.sh.
+# Every value that must be confirmed is marked  # REPLACE  below.
+#
+# Assumptions to confirm against your base compose:
+#   * backend service is named  `parkshare-backend`
+#   * database service is named `parkshare-db`   (so DB_HOST=parkshare-db)
+#   * the base file is named    `docker-compose.yml`
+#   * Traefik owns 80/443 and its HTTPS entrypoint / ACME resolver names are
+#     copied from its labels or static config (commonly `websecure` +
+#     `letsencrypt`, but ONLY the real names work).
+# =============================================================================
+
+services:
+  parkshare-backend:
+    # Full production configuration + secrets.
+    env_file:
+      - ./parkshare-prod.env
+
+    # Routing-critical values are repeated here so they OVERRIDE any stale value
+    # in the base compose's own `environment:` block (in Compose, an inline
+    # `environment:` entry beats an `env_file` entry).
+    environment:
+      APP_ENV: production
+      DB_HOST: parkshare-db
+      PUBLIC_BASE_URL: https://api.example.com        # REPLACE
+      CORS_ALLOWED_ORIGINS: https://api.example.com   # REPLACE
+      UPLOAD_DIR: /data/uploads
+
+    # The temporary test publish (8082 -> 8080) must not survive into
+    # production: it exposes the API directly, bypassing Traefik and therefore
+    # TLS. `!reset []` requires Docker Compose >= 2.24 (check `compose version`).
+    # FALLBACK if your Compose is older: remove/comment the `ports:` entry in the
+    # base file, or change it to "127.0.0.1:8082:8080" so it is loopback-only.
+    ports: !reset []
+
+    volumes:
+      # Owner photos must survive container recreation; the image filesystem
+      # does not. Path matches UPLOAD_DIR above.
+      - parkshare_uploads:/data/uploads
+
+    networks:
+      - default          # keeps the backend talking to parkshare-db
+      - traefik          # lets the Traefik container reach the backend
+
+    labels:
+      - "traefik.enable=true"
+      # Network Traefik itself uses to reach this container.
+      - "traefik.docker.network=traefik_proxy"   # REPLACE (from inspect-vps.sh)
+
+      # ---- HTTPS router (used by the Android app AND the Razorpay webhook) ----
+      - "traefik.http.routers.parkshare.rule=Host(`api.example.com`)"   # REPLACE
+      - "traefik.http.routers.parkshare.entrypoints=websecure"          # REPLACE
+      - "traefik.http.routers.parkshare.tls=true"
+      - "traefik.http.routers.parkshare.tls.certresolver=letsencrypt"   # REPLACE
+      - "traefik.http.routers.parkshare.service=parkshare"
+
+      # ---- HTTP -> HTTPS redirect ----
+      - "traefik.http.routers.parkshare-http.rule=Host(`api.example.com`)"  # REPLACE
+      - "traefik.http.routers.parkshare-http.entrypoints=web"               # REPLACE
+      - "traefik.http.routers.parkshare-http.middlewares=parkshare-redirect"
+      - "traefik.http.middlewares.parkshare-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.parkshare-redirect.redirectscheme.permanent=true"
+
+      # ---- Backend target: the Dart server listens on 8080 in the container ----
+      - "traefik.http.services.parkshare.loadbalancer.server.port=8080"
+
+networks:
+  traefik:
+    external: true
+    name: traefik_proxy   # REPLACE (same value as traefik.docker.network above)
+
+volumes:
+  # Named volume so uploads persist independently of the container lifecycle.
+  parkshare_uploads:

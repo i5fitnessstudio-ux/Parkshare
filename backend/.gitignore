@@ -1,0 +1,15 @@
+# Dart tooling
+.dart_tool/
+.packages
+build/
+
+# Audit L-19: `parkshare_backend` is an APPLICATION, not a published package,
+# so the lockfile MUST be committed — otherwise the exact dependency versions
+# that were security-reviewed are not reproducible. It was previously ignored.
+
+# Secrets
+.env
+
+# OS
+.DS_Store
+Thumbs.db

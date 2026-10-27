@@ -1,0 +1,22 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- The INTERNET permission is required for development. Specifically,
+         the Flutter tool needs it to communicate with the running application
+         to allow setting breakpoints, to provide hot reload, etc.
+    -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug builds talk to the local dev backend over plain HTTP
+         (http://10.0.2.2:8080 from the emulator). Android blocks cleartext
+         traffic by default on API 28+, so allow it for debug builds only.
+
+         AUDIT M-11: `tools:replace` is required because
+         src/main/AndroidManifest.xml sets `usesCleartextTraffic="false"` and
+         points at a network security config with
+         `cleartextTrafficPermitted="false"`. This is the ONLY place in the
+         project that may re-enable cleartext traffic; release and profile builds
+         must never do so.
+    -->
+    <application
+        android:usesCleartextTraffic="true"
+        tools:replace="android:usesCleartextTraffic" />
+</manifest>

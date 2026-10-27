@@ -1,0 +1,122 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Network access for the ParkShare API -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- AUDIT M-11: no cleartext HTTP in ANY shipped build.
+
+         `usesCleartextTraffic="false"` plus `networkSecurityConfig` below mean
+         a release APK cannot open a plain-HTTP socket even if a
+         `API_BASE_URL=http://...` dart-define slips onto the build command, and
+         even if the backend is misconfigured. Credentials, JWTs and UPI ids must
+         never travel in the clear.
+
+         Debug builds override this in src/debug/AndroidManifest.xml, which is
+         the only place `usesCleartextTraffic="true"` is allowed to appear. -->
+    <!-- Location (Phase 5: nearby parking map) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- Notifications (future: booking alerts) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- AUDIT M-12: no automatic cloud/device backup of the app's private data.
+         The Keystore-backed flutter_secure_storage token file must never be
+         copied to another device. See res/xml/data_extraction_rules.xml. -->
+    <application
+        android:label="ParkShare"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <!-- Specifies an Android theme to apply to this Activity as soon as
+                 the Android process has started. This theme is visible to the user
+                 while the Flutter UI initializes. After that, this theme continues
+                 to determine the Window background behind the Flutter UI. -->
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+    <!-- Required to query activities that can process text, see:
+         https://developer.android.com/training/package-visibility and
+         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
+
+         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Package visibility for the "Call" buttons: let url_launcher resolve
+             an installed dialler for ACTION_DIAL on Android 11+.
+             DIAL only pre-fills the number (the user presses call), so no
+             CALL_PHONE runtime permission is needed. -->
+        <intent>
+            <action android:name="android.intent.action.DIAL"/>
+            <data android:scheme="tel"/>
+        </intent>
+        <!-- Package visibility for UPI payments.
+
+             This is the fix for "No UPI app found" on a real phone that already
+             has Google Pay installed:
+
+               1. The generic <intent> below is the important one. It declares
+                  visibility for the *scheme*, so `canLaunchUrl()` /
+                  `queryIntentActivities()` can resolve ANY installed UPI app
+                  (Google Pay, PhonePe, Paytm, BHIM, Amazon Pay, Cred, a bank
+                  app, …) instead of only a hardcoded list. Keep it.
+
+               2. The <package> entries are belt-and-braces. Android 11+ hides
+                  packages by default, and some OEM builds (and some UPI apps
+                  that register only a path/host-specific filter) still fail to
+                  resolve through the generic declaration alone. Declaring the
+                  well-known UPI package ids explicitly makes both
+                  `PackageManager.resolveActivity()` and our own
+                  `UpiAppProbe` channel able to see them.
+
+             Keep everything in this SINGLE <queries> block at the TOP level of
+             <manifest> — NOT inside <application>. -->
+        <package android:name="com.google.android.apps.nbu.paisa.user"/>
+        <package android:name="com.google.android.apps.nbu.paisa"/>
+        <package android:name="com.phonepe.app"/>
+        <package android:name="com.google.android.apps.phonepe"/>
+        <package android:name="net.one97.paytm"/>
+        <package android:name="com.phonepe.paymentlite"/>
+        <package android:name="in.org.npci.upiapp"/>
+        <package android:name="in.amazon.mShop.android.shopping"/>
+        <package android:name="com.dreamplug.androidapp"/>
+        <package android:name="com.mobikwik_new"/>
+        <package android:name="com.freecharge.android"/>
+        <package android:name="com.payzapp.app"/>
+
+        <!-- Any app that handles the standard UPI intent. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="upi"/>
+        </intent>
+        <!-- NPCI's explicit "collect/pay" intent, used by a few apps. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="upi" android:host="pay"/>
+        </intent>
+    </queries>
+</manifest>

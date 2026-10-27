@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AUDIT M-12 — the app's private data must never leave the device via
+  Android's automatic cloud backup.
+
+  ParkShare stores the JWT access/refresh pair in flutter_secure_storage (the
+  Android Keystore-backed EncryptedSharedPreferences). An adb/cloud backup of
+  that file would restore a live session onto another device, and the backup
+  transport itself is outside ParkShare's control. `android:allowBackup="false"`
+  in the main manifest is the primary control; these two rules are the
+  belt-and-braces required from API 31+, where `allowBackup` alone does not
+  cover cloud backup on some OEM builds.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>
